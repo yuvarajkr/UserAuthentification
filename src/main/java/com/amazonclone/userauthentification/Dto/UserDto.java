@@ -10,6 +10,7 @@ import java.util.Set;
 @Getter
 @Setter
 public class UserDto {
+    private Long user_id;
     private String email;
     private Set<Role> roles = new HashSet<>();
 }

@@ -1,9 +1,6 @@
 package com.amazonclone.userauthentification.Controller;
 
-import com.amazonclone.userauthentification.Dto.LoginDto;
-import com.amazonclone.userauthentification.Dto.LogoutRequestDto;
-import com.amazonclone.userauthentification.Dto.SignUpDto;
-import com.amazonclone.userauthentification.Dto.UserDto;
+import com.amazonclone.userauthentification.Dto.*;
 import com.amazonclone.userauthentification.Model.User;
 import com.amazonclone.userauthentification.Service.IAuthService;
 import org.antlr.v4.runtime.misc.Pair;
@@ -51,6 +48,18 @@ public class AuthController {
         return new ResponseEntity<>(getUserDto(userWithHeader.a),userWithHeader.b, HttpStatus.OK);
     }
 
+    @PostMapping("/validate_token")
+    public ResponseEntity<Boolean> validateToken(@RequestBody ValidateTokenDto validateTokenDto){
+        if(validateTokenDto.getUser_id()==null || validateTokenDto.getToken()==null){
+            throw new IllegalArgumentException("Token or user_id is empty");
+        }
+        Boolean response = authService.validateToken(validateTokenDto.getToken(), validateTokenDto.getUser_id());
+        if(!response){
+            return new ResponseEntity<>(false, HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<>(true, HttpStatus.OK);
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<UserDto> logout(@RequestBody LogoutRequestDto logoutRequestDto){
         return null;
@@ -58,6 +67,7 @@ public class AuthController {
 
     private UserDto getUserDto(User user){
         UserDto userDto = new UserDto();
+        userDto.setUser_id(user.getId());
         userDto.setEmail(user.getEmail());
         userDto.setRoles(user.getRoles());
         return userDto;

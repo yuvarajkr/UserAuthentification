@@ -2,6 +2,8 @@ package com.amazonclone.userauthentification.Service;
 
 import com.amazonclone.userauthentification.Model.Session;
 import com.amazonclone.userauthentification.Repository.SessionRepo;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtParser;
 import jakarta.servlet.http.Cookie;
 import org.antlr.v4.runtime.misc.Pair;
 import com.amazonclone.userauthentification.Exception.UserAlreadyExistException;
@@ -99,5 +101,28 @@ public class AuthService implements IAuthService{
         User user = userOptional.get();
         user.setStatus(Status.INACTIVE);
         return user;
+    }
+
+    @Override
+    public Boolean validateToken(String token, Long userId) {
+        Optional<Session> sessionOptional = sessionRepo.findByTokenAndUser_Id(token,userId);
+
+        if(sessionOptional.isEmpty()){
+            System.out.println("Ask user to login");
+            return false;
+        }
+
+        JwtParser jwtParser = Jwts.parser().verifyWith(secretkey).build();
+        Claims claims = jwtParser.parseSignedClaims(token).getPayload();
+
+        Long exp = (Long)claims.get("exp");
+        Long iat = (Long)claims.get("iat");
+
+        if(iat>exp){
+            System.out.println("Token expired");
+            return false;
+        }
+
+        return true;
     }
 }
